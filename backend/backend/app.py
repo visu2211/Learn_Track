@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from config import Config
 from blueprints.auth import auth_bp
 from blueprints.users import users_bp
+from blueprints.learning import learning_bp
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -18,6 +19,7 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 # Register blueprints with the API blueprint
 api_bp.register_blueprint(auth_bp)
 api_bp.register_blueprint(users_bp)
+api_bp.register_blueprint(learning_bp)
 
 # Register the API blueprint with the app
 app.register_blueprint(api_bp)

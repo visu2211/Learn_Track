@@ -31,7 +31,29 @@ def init_database():
                 )
                 """
             cursor.execute(sql)
-            
+
+            if is_sqlite:
+                user_data_sql = """
+                CREATE TABLE IF NOT EXISTS user_data (
+                    user_id INTEGER NOT NULL,
+                    data_type TEXT NOT NULL,
+                    data TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (user_id, data_type)
+                )
+                """
+            else:
+                user_data_sql = """
+                CREATE TABLE IF NOT EXISTS user_data (
+                    user_id INT NOT NULL,
+                    data_type VARCHAR(20) NOT NULL,
+                    data LONGTEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (user_id, data_type)
+                )
+                """
+            cursor.execute(user_data_sql)
+
         connection.commit()
         print("Database initialized successfully")
         
