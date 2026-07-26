@@ -312,7 +312,7 @@ class LearningService {
     try {
       // Use Gemini API to generate learning path
       final model = GenerativeModel(
-        model: 'gemini-1.5-pro',
+        model: 'gemini-flash-latest',
         apiKey: apiKey,
       );
 

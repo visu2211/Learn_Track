@@ -53,6 +53,10 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
           _apiKeyError = 'Gemini API key not set. Please set it in settings.';
         });
         _showApiKeyDialog();
+      } else {
+        setState(() {
+          _apiKeyError = 'Could not generate a learning path: ${e.toString()}';
+        });
       }
     } finally {
       if (mounted) {
