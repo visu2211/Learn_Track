@@ -169,22 +169,19 @@ class _StreakOverviewState extends State<StreakOverview> {
                 child: Container(
                   height: 8,
                   color: colors.border,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width *
-                            0.8 *
-                            weekProgress,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              colors.accentGradientStart,
-                              colors.accentGradientEnd,
-                            ],
-                          ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: weekProgress.clamp(0.0, 1.0),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            colors.accentGradientStart,
+                            colors.accentGradientEnd,
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),

@@ -1,4 +1,14 @@
 # database.py
+#
+# Single entry point for getting a DB connection: get_connection().
+# Every blueprint calls this instead of talking to pymysql/sqlite3 directly.
+#
+# Why: local dev and the free-tier deploy don't have a MySQL server available,
+# so this tries real MySQL first (for a proper deployment) and transparently
+# falls back to a local SQLite file otherwise. The SQLiteConnection/SQLiteCursor
+# wrapper classes below exist purely so the fallback speaks the exact same
+# cursor API pymysql does (%s placeholders, .execute()/.fetchone()/.fetchall())
+# - callers never need an if/else for which database they're actually on.
 
 import pymysql
 import sqlite3

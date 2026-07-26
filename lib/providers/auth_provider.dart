@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
+// Holds the current auth session and exposes it reactively to the widget
+// tree. This is the ChangeNotifier that AuthenticationWrapper (main.dart)
+// watches to decide between showing the landing page or the dashboard, and
+// that LearningProvider (via ChangeNotifierProxyProvider) watches to know
+// when to load/clear a user's learning data. AuthService does the actual
+// HTTP calls and SharedPreferences persistence; this class is the
+// UI-facing state layer on top of it.
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   User? _user;

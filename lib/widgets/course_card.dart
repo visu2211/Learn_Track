@@ -83,21 +83,23 @@ class CourseCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            // Progress bar
+            // Progress bar. FractionallySizedBox sizes the filled portion as
+            // a fraction of ITS OWN parent's width - a previous version
+            // computed the fill as `MediaQuery screen width * 0.7 * progress`,
+            // which meant a "100%" bar only ever filled to whatever fraction
+            // of the actual card width 0.7*screenWidth happened to be, never
+            // the full bar. Sizing relative to the real container instead of
+            // guessing from screen size is the general fix for this class of bug.
             if (progress > 0)
               ClipRRect(
                 borderRadius: BorderRadius.circular(9999),
                 child: Container(
                   height: 4,
                   color: colors.border,
-                  child: Row(
-                    children: [
-                      Container(
-                        width:
-                            MediaQuery.of(context).size.width * 0.7 * progress,
-                        color: colors.accent,
-                      ),
-                    ],
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: progress.clamp(0.0, 1.0),
+                    child: Container(color: colors.accent),
                   ),
                 ),
               ),

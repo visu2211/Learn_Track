@@ -4,6 +4,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../config.dart';
 
+// Two responsibilities living in one class:
+//  1. Talking to the Flask backend for courses/paths/streak (network-first,
+//     always falls back to the last value cached in SharedPreferences so a
+//     flaky connection or backend cold-start never blanks the UI).
+//  2. Talking to Gemini directly from the client to turn a topic string into
+//     a structured learning path (see generatePathForTopic) - and, before
+//     that, a cheap ambiguity check (checkAmbiguity) so a topic like
+//     "derivatives" prompts the user to disambiguate instead of Gemini
+//     silently guessing one meaning.
+// The Gemini API key lives in SharedPreferences too - it's supplied by each
+// user via a dialog the first time they generate a path (see Section 8 of
+// PROJECT_OVERVIEW.md for the tradeoff of doing this client-side).
 class LearningService {
   late final String baseUrl;
   String? _geminiApiKey;
@@ -360,7 +372,14 @@ class LearningService {
     }
 
     try {
-      // Use Gemini API to generate learning path
+      // Use Gemini API to generate learning path.
+      // 'gemini-flash-latest' is Google's alias for their current default
+      // model rather than a pinned version - this was originally pinned to
+      // 'gemini-1.5-pro', which Google has since fully removed from the API
+      // (confirmed via a direct API call that returned a 404). Using the
+      // "latest" alias trades a small amount of behavior-shifting-over-time
+      // risk for not silently breaking again the next time a model is
+      // deprecated.
       final model = GenerativeModel(
         model: 'gemini-flash-latest',
         apiKey: apiKey,

@@ -3,6 +3,14 @@ import '../services/learning_service.dart';
 import '../providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Owns the current user's courses, generated learning paths, and streak
+// data, and is the single place that mutates them (completing a lesson,
+// generating a new path, deleting one, updating the streak). Every mutation
+// here follows the same pattern: update in-memory state -> notifyListeners()
+// so the UI updates instantly -> persist via LearningService (which itself
+// saves locally first, then best-effort syncs to the backend). See
+// _saveCourses/_saveLearningPaths below for why they must NOT skip saving
+// just because the list is empty (deleting the last item is a real state).
 class LearningProvider extends ChangeNotifier {
   final LearningService _learningService = LearningService();
   List<Map<String, dynamic>> _currentCourses = [];

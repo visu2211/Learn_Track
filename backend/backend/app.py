@@ -57,6 +57,11 @@ def log_response_info(response):
     return response
 
 if __name__ == '__main__':
+    # This block only runs for local dev (`python app.py`). In production,
+    # gunicorn (see Procfile) imports `app` directly and never calls
+    # app.run(), so debug mode / the Flask dev server are never reachable
+    # there regardless of FLASK_DEBUG - the two entrypoints are mutually
+    # exclusive on purpose.
     port = int(os.environ.get('PORT', 8000))
     debug = os.environ.get('FLASK_DEBUG', '1') == '1'
     print(f"Starting server on http://0.0.0.0:{port} (debug={debug})")

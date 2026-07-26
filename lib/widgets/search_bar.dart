@@ -6,6 +6,17 @@ import '../screens/learning_paths_screen.dart';
 import '../services/learning_service.dart';
 import '../theme/app_colors.dart';
 
+// Search bar on the dashboard: "what would you like to learn?" -> generates
+// an AI learning path. The flow (_generateLearningPath) is:
+//   1. Guard against a second submission firing while one is already running
+//      (this used to be missing - see PROJECT_OVERVIEW.md Section 7 for the
+//      bug that caused: submitting an ambiguous topic twice could return two
+//      different Gemini interpretations, both saved as separate paths).
+//   2. Ask Gemini a cheap yes/no-ish question: is this topic ambiguous?
+//   3. If yes, show a dialog so the user picks the meaning instead of
+//      Gemini silently guessing one.
+//   4. Run the real (slower, more expensive) generation call with whichever
+//      topic phrasing was actually decided on.
 class CustomSearchBar extends StatefulWidget {
   const CustomSearchBar({Key? key}) : super(key: key);
 

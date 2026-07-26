@@ -12,6 +12,10 @@ void main() async {
   runApp(const MyApp());
 }
 
+// Root widget: wires up the three ChangeNotifier providers the whole app
+// shares (auth session, learning data, theme mode) and feeds ThemeProvider's
+// current mode straight into MaterialApp so switching themes in Settings
+// re-themes every screen at once - no per-screen listening required.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -20,6 +24,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        // ProxyProvider (not a plain provider) because LearningProvider needs
+        // to react to AuthProvider changes: log in -> fetch this user's
+        // courses/paths/streak, log out -> clear them. This is the wiring
+        // that makes that automatic instead of every screen doing it manually.
         ChangeNotifierProxyProvider<AuthProvider, LearningProvider>(
           create: (_) => LearningProvider(),
           update: (_, authProvider, learningProvider) {

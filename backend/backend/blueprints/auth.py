@@ -1,4 +1,16 @@
 # blueprints/auth.py
+#
+# Signup/login/session-validation. Auth here is intentionally simple (SHA-256,
+# no salt, a derived token instead of a real JWT) - fine for a portfolio
+# project, not what you'd ship to production (see PROJECT_OVERVIEW.md Section 8).
+#
+# Token model: on signup/login we compute a token from the user's own data
+# (email + password hash + name + id) and STORE it against that user's row.
+# /validate later looks a token up in the users table to find out who it
+# belongs to - it doesn't decode/verify it any other way. The token's actual
+# value doesn't matter beyond "is unique enough to look up"; the security
+# property that matters here is that each user only ever gets *their own*
+# token back, and validate() only trusts a token that matches a stored one.
 
 from flask import Blueprint, request, jsonify
 import hashlib
@@ -116,10 +128,16 @@ def signin():
 
 @auth_bp.route('/validate', methods=['GET'])
 def validate_token():
+    # Called on every app start to restore a session from the token saved in
+    # SharedPreferences. IMPORTANT: this must look the user up BY the token
+    # they sent, not just return "some" logged-in user - an earlier version
+    # of this endpoint did `SELECT * FROM users LIMIT 1`, which meant every
+    # app restart could log you in as whichever user happened to be first in
+    # the table, regardless of whose token was actually presented.
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return jsonify({'message': 'Invalid token'}), 401
-    
+
     token = auth_header.split(' ')[1]
 
     connection = get_connection()

@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
+// Builds the two ThemeData objects MaterialApp switches between (see
+// main.dart: theme/darkTheme/themeMode). The important bit is `extensions:
+// [colors]` below - that's what makes `Theme.of(context).extension<AppColorsExt>()`
+// resolve to AppColorsExt.light or .dark depending on the active mode, which
+// is how every widget in the app picks its colors without ever checking
+// brightness itself.
 class AppTheme {
   static ThemeData get light => _build(AppColorsExt.light, Brightness.light);
   static ThemeData get dark => _build(AppColorsExt.dark, Brightness.dark);
