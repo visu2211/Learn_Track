@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_colors.dart';
 
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
@@ -32,6 +33,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -40,7 +42,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF374151),
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(height: 6),
@@ -51,18 +53,18 @@ class _CustomTextFieldState extends State<CustomTextField> {
           validator: widget.validator,
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF1F2937),
+            color: colors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: GoogleFonts.inter(
               fontSize: 14,
-              color: const Color(0xFF9CA3AF),
+              color: colors.textTertiary,
             ),
             prefixIcon: widget.icon != null
                 ? Icon(
                     widget.icon,
-                    color: const Color(0xFF9CA3AF),
+                    color: colors.textTertiary,
                     size: 24,
                   )
                 : (widget.iconUrl != null
@@ -79,7 +81,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: const Color(0xFF9CA3AF),
+                      color: colors.textTertiary,
                     ),
                     onPressed: () {
                       setState(() {
@@ -94,38 +96,23 @@ class _CustomTextFieldState extends State<CustomTextField> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              borderSide: BorderSide(color: colors.border, width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              borderSide: BorderSide(color: colors.border, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF4F46E5),
-                width: 1,
-              ),
+              borderSide: BorderSide(color: colors.accent, width: 1),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.red,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: colors.error, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.red,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: colors.error, width: 1),
             ),
           ),
         ),

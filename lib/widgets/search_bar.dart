@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/learning_provider.dart';
 import '../screens/learning_paths_screen.dart';
 import '../services/learning_service.dart';
+import '../theme/app_colors.dart';
 
 class CustomSearchBar extends StatefulWidget {
   const CustomSearchBar({Key? key}) : super(key: key);
@@ -25,6 +26,8 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   }
 
   Future<void> _generateLearningPath() async {
+    if (_isLoading) return; // Ignore re-entrant submissions (e.g. double Enter).
+
     final query = _controller.text.trim();
     if (query.isEmpty) return;
 
@@ -34,30 +37,29 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
     });
 
     try {
-      final learningProvider =
-          Provider.of<LearningProvider>(context, listen: false);
-      await learningProvider.generateLearningPath(query);
+      final options = await _learningService.checkAmbiguity(query);
 
-      if (context.mounted) {
-        _controller.clear();
-        // Navigate to paths screen to show the new path
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LearningPathsScreen()),
-        );
+      String topic = query;
+      if (options.length > 1) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        if (!mounted) return;
+        final choice = await _showDisambiguationDialog(query, options);
+        if (choice == null) return; // User cancelled.
+        topic = choice;
+        if (mounted) {
+          setState(() {
+            _isLoading = true;
+          });
+        }
       }
+
+      await _runGeneration(topic);
     } catch (e) {
-      // Check if error is about missing API key
-      if (e.toString().contains('API key not set')) {
-        setState(() {
-          _apiKeyError = 'Gemini API key not set. Please set it in settings.';
-        });
-        _showApiKeyDialog();
-      } else {
-        setState(() {
-          _apiKeyError = 'Could not generate a learning path: ${e.toString()}';
-        });
-      }
+      _handleError(e);
     } finally {
       if (mounted) {
         setState(() {
@@ -67,19 +69,121 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
     }
   }
 
+  Future<void> _runGeneration(String topic) async {
+    final learningProvider =
+        Provider.of<LearningProvider>(context, listen: false);
+    await learningProvider.generateLearningPath(topic);
+
+    if (context.mounted) {
+      _controller.clear();
+      // Navigate to paths screen to show the new path
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LearningPathsScreen()),
+      );
+    }
+  }
+
+  void _handleError(Object e) {
+    // Check if error is about missing API key
+    if (e.toString().contains('API key not set')) {
+      setState(() {
+        _apiKeyError = 'Gemini API key not set. Please set it in settings.';
+      });
+      _showApiKeyDialog();
+    } else {
+      setState(() {
+        _apiKeyError = 'Could not generate a learning path: ${e.toString()}';
+      });
+    }
+  }
+
+  Future<String?> _showDisambiguationDialog(
+      String query, List<String> options) {
+    final colors = context.colors;
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          title: Text(
+            'Which "$query" did you mean?',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This topic could refer to more than one subject. Pick one to generate a focused learning path.',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: colors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...options.map((option) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => Navigator.of(context).pop(option),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: colors.accentSurface,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: colors.border),
+                        ),
+                        child: Text(
+                          option,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: colors.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showApiKeyDialog() {
     final TextEditingController apiKeyController = TextEditingController();
+    final colors = context.colors;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: colors.surface,
           title: Text(
             'Set Gemini API Key',
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1F2937),
+              color: colors.textPrimary,
             ),
           ),
           content: Column(
@@ -90,7 +194,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                 'To generate learning paths, LearnTrack needs a Gemini API key.',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: const Color(0xFF6B7280),
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -98,20 +202,22 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                 '1. Go to console.cloud.google.com\n2. Enable Gemini API\n3. Create API Key\n4. Paste it below',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: const Color(0xFF6B7280),
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: apiKeyController,
+                style: TextStyle(color: colors.textPrimary),
                 decoration: InputDecoration(
                   hintText: 'Enter your Gemini API key',
                   hintStyle: GoogleFonts.poppins(
                     fontSize: 14,
-                    color: const Color(0xFFADAEBC),
+                    color: colors.textTertiary,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: colors.border),
                   ),
                 ),
                 obscureText: true,
@@ -127,7 +233,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                 'Cancel',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: const Color(0xFF6B7280),
+                  color: colors.textSecondary,
                 ),
               ),
             ),
@@ -144,7 +250,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4F46E5),
+                backgroundColor: colors.accent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -165,17 +271,18 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
+        color: colors.accentSurface,
         borderRadius: BorderRadius.circular(9999),
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.search,
-            color: Color(0xFF6B7280),
+            color: colors.textSecondary,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -183,13 +290,13 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
               controller: _controller,
               style: GoogleFonts.poppins(
                 fontSize: 16,
-                color: const Color(0xFF1F2937),
+                color: colors.textPrimary,
               ),
               decoration: InputDecoration(
                 hintText: 'What would you like to learn?',
                 hintStyle: GoogleFonts.poppins(
                   fontSize: 16,
-                  color: const Color(0xFFADAEBC),
+                  color: colors.textTertiary,
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
@@ -199,19 +306,19 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
             ),
           ),
           if (_isLoading)
-            const SizedBox(
+            SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Color(0xFF4F46E5),
+                color: colors.accent,
               ),
             )
           else
             IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_forward,
-                color: Color(0xFF4F46E5),
+                color: colors.accent,
               ),
               onPressed: _generateLearningPath,
             ),

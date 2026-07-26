@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../theme/app_colors.dart';
 import 'login_page_screen.dart';
 import 'learn_track_dash.dart';
 
@@ -76,9 +77,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final colors = context.colors;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colors.background,
       body: SingleChildScrollView(
         child: Center(
           child: Container(
@@ -110,7 +112,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1F2937),
+                                  color: colors.textPrimary,
                                 ),
                               ),
                             ],
@@ -123,14 +125,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           padding: const EdgeInsets.fromLTRB(25, 25, 25, 41),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
-                            color: Colors.white.withOpacity(0.8),
+                            color: colors.surface,
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: colors.border,
                               width: 1,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: colors.shadow,
                                 blurRadius: 6,
                                 offset: const Offset(0, 4),
                               ),
@@ -146,7 +148,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   style: GoogleFonts.inter(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1F2937),
+                                    color: colors.textPrimary,
                                   ),
                                 ),
                                 const SizedBox(height: 24),
@@ -288,12 +290,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             }
                                           },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF4F46E5),
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 18,
                                       ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ).copyWith(
+                                      backgroundBuilder:
+                                          (context, states, child) => Ink(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              colors.accentGradientStart,
+                                              colors.accentGradientEnd,
+                                            ],
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: child,
                                       ),
                                     ),
                                     child: authProvider.isLoading
@@ -340,7 +357,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     text: 'Already have an account? ',
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
-                                      color: const Color(0xFF4B5563),
+                                      color: colors.textSecondary,
                                     ),
                                   ),
                                   TextSpan(
@@ -348,7 +365,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: const Color(0xFF4F46E5),
+                                      color: colors.accent,
                                     ),
                                   ),
                                 ],

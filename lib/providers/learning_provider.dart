@@ -153,7 +153,7 @@ class LearningProvider extends ChangeNotifier {
   Future<void> _saveCourses() async {
     try {
       final uid = await _getUserId();
-      if (uid != null && _currentCourses.isNotEmpty) {
+      if (uid != null) {
         await _learningService.saveCurrentCourses(_currentCourses);
       }
     } catch (e) {
@@ -331,11 +331,28 @@ class LearningProvider extends ChangeNotifier {
   Future<void> _saveLearningPaths() async {
     try {
       final uid = await _getUserId();
-      if (uid != null && _learningPaths.isNotEmpty) {
+      if (uid != null) {
         await _learningService.saveLearningPaths(_learningPaths);
       }
     } catch (e) {
       print('Error saving learning paths: $e');
+    }
+  }
+
+  Future<void> deletePath(int pathIndex) async {
+    try {
+      if (pathIndex < 0 || pathIndex >= _learningPaths.length) return;
+
+      final removed = _learningPaths.removeAt(pathIndex);
+      _currentCourses.removeWhere((course) => course['title'] == removed['title']);
+
+      await _saveLearningPaths();
+      await _saveCourses();
+
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
     }
   }
 

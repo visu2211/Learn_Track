@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/learning_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/learn_track_home.dart';
 import 'screens/learn_track_dash.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,17 +27,19 @@ class MyApp extends StatelessWidget {
             return learningProvider;
           },
         ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: Consumer<AuthProvider>(builder: (context, authProvider, _) {
-        return MaterialApp(
-          title: 'LearnTrack',
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            useMaterial3: true,
-          ),
-          home: const AuthenticationWrapper(),
-        );
-      }),
+      child: Consumer2<AuthProvider, ThemeProvider>(
+        builder: (context, authProvider, themeProvider, _) {
+          return MaterialApp(
+            title: 'LearnTrack',
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: themeProvider.themeMode,
+            home: const AuthenticationWrapper(),
+          );
+        },
+      ),
     );
   }
 }

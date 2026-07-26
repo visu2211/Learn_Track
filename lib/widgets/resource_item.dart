@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../theme/app_colors.dart';
 
 class ResourceItem extends StatelessWidget {
   final Map<String, dynamic> resource;
@@ -12,6 +13,7 @@ class ResourceItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final IconData icon =
         _getIconForResourceType(resource['type'] as String? ?? 'article');
     final String? resourceUrl = resource['url'] as String?;
@@ -53,7 +55,7 @@ class ResourceItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
+            color: colors.accentSurface,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -61,9 +63,7 @@ class ResourceItem extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: isValidUrl
-                    ? const Color(0xFF4F46E5)
-                    : const Color(0xFF9CA3AF),
+                color: isValidUrl ? colors.accent : colors.textTertiary,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -74,9 +74,8 @@ class ResourceItem extends StatelessWidget {
                       resource['title'] ?? 'Untitled Resource',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
-                        color: isValidUrl
-                            ? const Color(0xFF4F46E5)
-                            : const Color(0xFF6B7280),
+                        color:
+                            isValidUrl ? colors.accent : colors.textSecondary,
                       ),
                     ),
                     if (isValidUrl && resourceUrl != null)
@@ -84,23 +83,23 @@ class ResourceItem extends StatelessWidget {
                         _formatUrlForDisplay(resourceUrl),
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: const Color(0xFF9CA3AF),
+                          color: colors.textTertiary,
                         ),
                       ),
                   ],
                 ),
               ),
               if (isValidUrl)
-                const Icon(
+                Icon(
                   Icons.open_in_new,
                   size: 16,
-                  color: Color(0xFF4F46E5),
+                  color: colors.accent,
                 )
               else
-                const Icon(
+                Icon(
                   Icons.error_outline,
                   size: 16,
-                  color: Color(0xFFEF4444),
+                  color: colors.error,
                 ),
             ],
           ),

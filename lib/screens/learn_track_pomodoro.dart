@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
+import '../theme/app_colors.dart';
+import './settings_screen.dart';
 
 class LearnTrackPomodoro extends StatefulWidget {
   const LearnTrackPomodoro({Key? key}) : super(key: key);
@@ -16,7 +18,6 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
   int _seconds = 0;
   Timer? _timer;
   String _currentMode = "Work";
-  Color timerColor = const Color(0xFF4F6EF5);
 
   // Pomodoro session durations (in minutes)
   final Map<String, int> _durations = {
@@ -47,20 +48,17 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
             // Here you would add code to play a sound or notification
           }
         }
-        updateColor();
       });
     });
 
     setState(() {
       _isRunning = true;
-      updateColor();
     });
   }
 
   void _resetTimer() {
     _timer?.cancel();
     setState(() {
-      timerColor = const Color(0xFF4F6EF5);
       _minutes = _durations[_currentMode]!;
       _seconds = 0;
       _isRunning = false;
@@ -70,24 +68,16 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
   void _stopTimer() {
     _timer?.cancel();
     setState(() {
-      _minutes = _minutes;
-      _seconds = _seconds;
       _isRunning = false;
     });
   }
 
-  void updateColor() {
-    double percent = _getProgressValue();
-
-    if (percent > 0.75) {
-      timerColor = const Color(0xFF4F6EF5);
-    } else if (percent > 0.5) {
-      timerColor = const Color(0xFF5E9EF3);
-    } else if (percent > 0.25) {
-      timerColor = const Color(0xFFF5A623);
-    } else {
-      timerColor = const Color(0xFFEB5757);
-    }
+  Color _timerColor(AppColorsExt colors) {
+    final percent = _getProgressValue();
+    if (percent > 0.75) return colors.accentGradientStart;
+    if (percent > 0.5) return colors.accent;
+    if (percent > 0.25) return const Color(0xFFF5A623);
+    return colors.error;
   }
 
   void _changeMode(String mode) {
@@ -117,13 +107,15 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final timerColor = _timerColor(colors);
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF9FAFB),
+        backgroundColor: colors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF333333)),
+          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -131,15 +123,22 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
         title: Text(
           'Focus Timer',
           style: GoogleFonts.poppins(
-            color: Colors.black,
+            color: colors.textPrimary,
             fontWeight: FontWeight.w500,
             fontSize: 20,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Color(0xFF6B7280)),
-            onPressed: () {},
+            icon: Icon(Icons.settings_outlined, color: colors.textSecondary),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -152,9 +151,11 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildModeButton("Work", _currentMode == "Work"),
-                _buildModeButton("Short Break", _currentMode == "Short Break"),
-                _buildModeButton("Long Break", _currentMode == "Long Break"),
+                _buildModeButton("Work", _currentMode == "Work", colors),
+                _buildModeButton(
+                    "Short Break", _currentMode == "Short Break", colors),
+                _buildModeButton(
+                    "Long Break", _currentMode == "Long Break", colors),
               ],
             ),
           ),
@@ -166,10 +167,10 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
               height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
+                color: colors.surface,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: colors.shadow,
                     spreadRadius: 5,
                     blurRadius: 10,
                     offset: const Offset(0, 3),
@@ -184,7 +185,7 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
                     height: 260,
                     child: CircularProgressIndicator(
                       value: _getProgressValue(),
-                      backgroundColor: Colors.grey.withOpacity(0.1),
+                      backgroundColor: colors.border,
                       valueColor: AlwaysStoppedAnimation<Color>(timerColor),
                       strokeWidth: 12,
                     ),
@@ -197,7 +198,7 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey,
+                          color: colors.textSecondary,
                         ),
                       ),
                       Text(
@@ -205,6 +206,7 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
                         style: GoogleFonts.poppins(
                           fontSize: 48,
                           fontWeight: FontWeight.w600,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ],
@@ -220,32 +222,55 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: _isRunning ? _stopTimer : _startTimer,
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(16),
-                    backgroundColor: const Color(0xFF4F6EF5),
-                    disabledBackgroundColor: const Color(0xFF4F6EF5),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        colors.accentGradientStart,
+                        colors.accentGradientEnd,
+                      ],
+                    ),
                   ),
-                  child: Icon(
-                    _isRunning ? Icons.pause : Icons.play_arrow,
-                    size: 32,
-                    color: Colors.white,
+                  child: Material(
+                    color: Colors.transparent,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: _isRunning ? _stopTimer : _startTimer,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Icon(
+                          _isRunning ? Icons.pause : Icons.play_arrow,
+                          size: 32,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 20),
-                ElevatedButton(
-                  onPressed: _resetTimer,
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(16),
-                    backgroundColor: const Color(0xFF4F6EF5),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colors.accentSurface,
+                    border: Border.all(color: colors.border),
                   ),
-                  child: const Icon(
-                    Icons.refresh,
-                    size: 28,
-                    color: Colors.white,
+                  child: Material(
+                    color: Colors.transparent,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: _resetTimer,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Icon(
+                          Icons.refresh,
+                          size: 28,
+                          color: colors.accent,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -261,7 +286,7 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: Colors.grey,
+                  color: colors.textSecondary,
                 ),
               ),
             ),
@@ -271,13 +296,13 @@ class _LearnTrackPomodoroState extends State<LearnTrackPomodoro> {
     );
   }
 
-  Widget _buildModeButton(String mode, bool isActive) {
+  Widget _buildModeButton(String mode, bool isActive, AppColorsExt colors) {
     return ElevatedButton(
       onPressed: () => _changeMode(mode),
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isActive ? const Color(0xFF4F6EF5) : Colors.grey.withOpacity(0.2),
-        foregroundColor: isActive ? Colors.white : Colors.black87,
+        backgroundColor: isActive ? colors.accent : colors.accentSurface,
+        foregroundColor: isActive ? Colors.white : colors.textPrimary,
+        elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),

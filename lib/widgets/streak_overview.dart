@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/learning_provider.dart';
+import '../theme/app_colors.dart';
 import 'streak_day.dart';
 
 class StreakOverview extends StatefulWidget {
@@ -113,10 +114,10 @@ class _StreakOverviewState extends State<StreakOverview> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Consumer<LearningProvider>(
       builder: (context, learningProvider, _) {
         final streakData = _localStreakData ?? learningProvider.streakData;
-        final int currentStreak = streakData?['currentStreak'] as int? ?? 0;
         final double weekProgress =
             streakData?['weekProgress'] as double? ?? 0.0;
         final List<dynamic> days = streakData?['days'] as List<dynamic>? ?? [];
@@ -126,11 +127,11 @@ class _StreakOverviewState extends State<StreakOverview> {
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: colors.shadow,
                 offset: const Offset(0, 1),
                 blurRadius: 2,
               ),
@@ -145,7 +146,7 @@ class _StreakOverviewState extends State<StreakOverview> {
                     'Streak Overview',
                     style: GoogleFonts.poppins(
                       fontSize: 20,
-                      color: const Color(0xFF1F2937),
+                      color: colors.textPrimary,
                     ),
                   ),
                   // Empty container to maintain spacing
@@ -167,14 +168,21 @@ class _StreakOverviewState extends State<StreakOverview> {
                 borderRadius: BorderRadius.circular(9999),
                 child: Container(
                   height: 8,
-                  color: const Color(0xFFE5E7EB),
+                  color: colors.border,
                   child: Row(
                     children: [
                       Container(
                         width: MediaQuery.of(context).size.width *
                             0.8 *
                             weekProgress,
-                        color: const Color(0xFF4F46E5),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              colors.accentGradientStart,
+                              colors.accentGradientEnd,
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -186,24 +194,24 @@ class _StreakOverviewState extends State<StreakOverview> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
+                    color: colors.successSurface,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.check_circle,
                         size: 18,
-                        color: Color(0xFF059669),
+                        color: colors.success,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Day completed! 🎉',
+                        'Day completed!',
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF14532D),
+                          color: colors.successText,
                         ),
                       ),
                     ],
@@ -212,32 +220,45 @@ class _StreakOverviewState extends State<StreakOverview> {
               else if (!isTodayDone)
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _completeToday,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4F46E5),
-                      disabledBackgroundColor: const Color(0xFFD1D5DB),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
+                  height: 44,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      gradient: _isLoading
+                          ? null
+                          : LinearGradient(
+                              colors: [
+                                colors.accentGradientStart,
+                                colors.accentGradientEnd,
+                              ],
+                            ),
+                      color: _isLoading ? colors.border : null,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
                         borderRadius: BorderRadius.circular(8),
+                        onTap: _isLoading ? null : _completeToday,
+                        child: Center(
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  'Complete Today',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
                       ),
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(
-                            'Complete Today',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.white,
-                            ),
-                          ),
                   ),
                 )
               else
@@ -245,25 +266,25 @@ class _StreakOverviewState extends State<StreakOverview> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
+                    color: colors.accentSurface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFD1D5DB)),
+                    border: Border.all(color: colors.border),
                   ),
                   child: Center(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.check_circle,
                           size: 16,
-                          color: Color(0xFF4F46E5),
+                          color: colors.accent,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'Today completed',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
-                            color: const Color(0xFF6B7280),
+                            color: colors.textSecondary,
                           ),
                         ),
                       ],

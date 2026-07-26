@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/learning_provider.dart';
+import '../theme/app_colors.dart';
 import '../widgets/resource_item.dart';
 
 class LearningPathsScreen extends StatelessWidget {
@@ -9,22 +10,23 @@ class LearningPathsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colors.surface,
         elevation: 0,
         title: Text(
           'My Paths',
           style: GoogleFonts.poppins(
             fontSize: 20,
-            color: const Color(0xFF1F2937),
+            color: colors.textPrimary,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back,
-            color: Color(0xFF6B7280),
+            color: colors.textSecondary,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -35,9 +37,9 @@ class LearningPathsScreen extends StatelessWidget {
         child: Consumer<LearningProvider>(
           builder: (context, learningProvider, _) {
             if (learningProvider.isLoading) {
-              return const Center(
+              return Center(
                 child: CircularProgressIndicator(
-                  color: Color(0xFF4F46E5),
+                  color: colors.accent,
                 ),
               );
             }
@@ -49,17 +51,17 @@ class LearningPathsScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.school_outlined,
                       size: 64,
-                      color: Color(0xFFD1D5DB),
+                      color: colors.border,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'No learning paths yet',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                        color: const Color(0xFF6B7280),
+                        color: colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -67,7 +69,7 @@ class LearningPathsScreen extends StatelessWidget {
                       'Search for a topic to create a path',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
-                        color: const Color(0xFF9CA3AF),
+                        color: colors.textTertiary,
                       ),
                     ),
                   ],
@@ -85,6 +87,7 @@ class LearningPathsScreen extends StatelessWidget {
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 16),
+                  color: colors.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -94,50 +97,64 @@ class LearningPathsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          path['title'] ?? 'Untitled Path',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1F2937),
-                          ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                path['title'] ?? 'Untitled Path',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete_outline,
+                                  size: 20, color: colors.textTertiary),
+                              tooltip: 'Delete path',
+                              onPressed: () =>
+                                  _confirmDeletePath(context, index, path),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         Text(
                           path['description'] ?? 'No description',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
-                            color: const Color(0xFF6B7280),
+                            color: colors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.timer_outlined,
                               size: 16,
-                              color: Color(0xFF6B7280),
+                              color: colors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               '$totalHours hours',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
-                                color: const Color(0xFF6B7280),
+                                color: colors.textSecondary,
                               ),
                             ),
                             const SizedBox(width: 16),
-                            const Icon(
+                            Icon(
                               Icons.bookmark_border,
                               size: 16,
-                              color: Color(0xFF6B7280),
+                              color: colors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               '${modules.length} modules',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
-                                color: const Color(0xFF6B7280),
+                                color: colors.textSecondary,
                               ),
                             ),
                           ],
@@ -148,7 +165,7 @@ class LearningPathsScreen extends StatelessWidget {
                             'View Modules',
                             style: GoogleFonts.poppins(
                               fontSize: 14,
-                              color: const Color(0xFF4F46E5),
+                              color: colors.accent,
                             ),
                           ),
                           children:
@@ -165,20 +182,20 @@ class LearningPathsScreen extends StatelessWidget {
                                     style: GoogleFonts.poppins(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: const Color(0xFF1F2937),
+                                      color: colors.textPrimary,
                                     ),
                                   ),
                                   subtitle: Text(
                                     '${module['estimatedHours'] ?? 0} hours',
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
-                                      color: const Color(0xFF6B7280),
+                                      color: colors.textSecondary,
                                     ),
                                   ),
-                                  trailing: const Icon(
+                                  trailing: Icon(
                                     Icons.arrow_forward_ios,
                                     size: 14,
-                                    color: Color(0xFF9CA3AF),
+                                    color: colors.textTertiary,
                                   ),
                                   onTap: () {
                                     _showModuleDetails(
@@ -197,12 +214,12 @@ class LearningPathsScreen extends StatelessWidget {
                                         'Mark as completed',
                                         style: GoogleFonts.poppins(
                                           fontSize: 12,
-                                          color: const Color(0xFF6B7280),
+                                          color: colors.textSecondary,
                                         ),
                                       ),
                                       Checkbox(
                                         value: isCompleted,
-                                        activeColor: const Color(0xFF4F46E5),
+                                        activeColor: colors.accent,
                                         onChanged: (bool? value) {
                                           if (value != null) {
                                             Provider.of<LearningProvider>(
@@ -216,7 +233,7 @@ class LearningPathsScreen extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                                const Divider(),
+                                Divider(color: colors.border),
                               ],
                             );
                           }),
@@ -233,11 +250,64 @@ class LearningPathsScreen extends StatelessWidget {
     );
   }
 
+  void _confirmDeletePath(
+      BuildContext context, int index, Map<String, dynamic> path) {
+    final colors = context.colors;
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          title: Text(
+            'Delete this path?',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
+          ),
+          content: Text(
+            '"${path['title'] ?? 'Untitled Path'}" and its progress will be permanently removed.',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: colors.textSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: colors.textSecondary),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Provider.of<LearningProvider>(context, listen: false)
+                    .deletePath(index);
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(
+                'Delete',
+                style: GoogleFonts.poppins(
+                  color: colors.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showModuleDetails(BuildContext context, Map<String, dynamic> module,
       int moduleIndex, int pathIndex) {
+    final colors = context.colors;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16),
@@ -265,7 +335,7 @@ class LearningPathsScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1F2937),
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -273,7 +343,7 @@ class LearningPathsScreen extends StatelessWidget {
                       module['description'] ?? 'No description',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
-                        color: const Color(0xFF6B7280),
+                        color: colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -281,9 +351,9 @@ class LearningPathsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
+                        color: colors.accentSurface,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -293,7 +363,7 @@ class LearningPathsScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF4F46E5),
+                              color: colors.accent,
                             ),
                           ),
                           Consumer<LearningProvider>(
@@ -307,7 +377,7 @@ class LearningPathsScreen extends StatelessWidget {
 
                               return Checkbox(
                                 value: isCompleted,
-                                activeColor: const Color(0xFF4F46E5),
+                                activeColor: colors.accent,
                                 onChanged: (bool? value) {
                                   if (value != null) {
                                     provider.completeModule(
@@ -326,7 +396,7 @@ class LearningPathsScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1F2937),
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -341,10 +411,10 @@ class LearningPathsScreen extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF3F4F6),
+                            color: colors.accentSurface,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: const Color(0xFFE5E7EB),
+                              color: colors.border,
                               width: 1,
                             ),
                           ),
@@ -356,7 +426,7 @@ class LearningPathsScreen extends StatelessWidget {
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF1F2937),
+                                  color: colors.textPrimary,
                                 ),
                               ),
                               if (lesson['description'] != null) ...[
@@ -365,7 +435,7 @@ class LearningPathsScreen extends StatelessWidget {
                                   lesson['description'],
                                   style: GoogleFonts.poppins(
                                     fontSize: 14,
-                                    color: const Color(0xFF6B7280),
+                                    color: colors.textSecondary,
                                   ),
                                 ),
                               ],
@@ -377,7 +447,7 @@ class LearningPathsScreen extends StatelessWidget {
                                   style: GoogleFonts.poppins(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF4F46E5),
+                                    color: colors.accent,
                                   ),
                                 ),
                                 const SizedBox(height: 8),

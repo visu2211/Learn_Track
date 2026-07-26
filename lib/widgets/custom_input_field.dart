@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class CustomInputField extends StatelessWidget {
   final String label;
@@ -18,13 +19,14 @@ class CustomInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Color(0xFF374151),
+          style: TextStyle(
+            color: colors.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -33,23 +35,22 @@ class CustomInputField extends StatelessWidget {
         Container(
           height: 50,
           decoration: BoxDecoration(
-            border: Border.all(
-              color: const Color(0xFFE5E7EB),
-            ),
+            border: Border.all(color: colors.border),
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
             controller: controller,
             obscureText: isPassword,
+            style: TextStyle(color: colors.textPrimary),
             decoration: InputDecoration(
               prefixIcon: Icon(
                 icon,
-                color: const Color(0xFF9CA3AF),
+                color: colors.textTertiary,
                 size: 16,
               ),
               hintText: placeholder,
-              hintStyle: const TextStyle(
-                color: Color(0xFF374151),
+              hintStyle: TextStyle(
+                color: colors.textTertiary,
                 fontSize: 16,
               ),
               border: InputBorder.none,

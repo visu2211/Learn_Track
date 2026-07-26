@@ -3,14 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'signup_page_screen.dart';
 import 'login_page_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../theme/app_colors.dart';
 
 class LearnTrackPage extends StatelessWidget {
   const LearnTrackPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: colors.background,
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isSmallScreen = constraints.maxWidth <= 640;
@@ -59,7 +61,7 @@ class LearnTrackPage extends StatelessWidget {
                                 style: GoogleFonts.inter(
                                   fontSize: isSmallScreen ? 26.0 : 30.0,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF111827),
+                                  color: colors.textPrimary,
                                   height: 1,
                                 ),
                               ),
@@ -70,7 +72,7 @@ class LearnTrackPage extends StatelessWidget {
                               style: GoogleFonts.inter(
                                 fontSize: isSmallScreen ? 16.0 : 18.0,
                                 fontWeight: FontWeight.w400,
-                                color: const Color(0xFF4B5563),
+                                color: colors.textSecondary,
                                 height: 1,
                               ),
                             ),
@@ -97,7 +99,14 @@ class LearnTrackPage extends StatelessWidget {
                             width: double.infinity,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2563EB),
+                              gradient: LinearGradient(
+                                colors: [
+                                  colors.accentGradientStart,
+                                  colors.accentGradientEnd,
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Material(
@@ -134,9 +143,9 @@ class LearnTrackPage extends StatelessWidget {
                             width: double.infinity,
                             height: 60,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: colors.surface,
                               border: Border.all(
-                                color: const Color(0xFF2563EB),
+                                color: colors.accent,
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -160,7 +169,7 @@ class LearnTrackPage extends StatelessWidget {
                                     style: GoogleFonts.inter(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF2563EB),
+                                      color: colors.accent,
                                     ),
                                   ),
                                 ),

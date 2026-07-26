@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../widgets/custom_input_field.dart';
 import '../widgets/custom_button.dart';
 import '../providers/auth_provider.dart';
+import '../theme/app_colors.dart';
 import 'signup_page_screen.dart';
 import 'learn_track_dash.dart';
 
@@ -28,8 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: colors.background,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -56,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1F2937),
+                          color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 60),
@@ -67,16 +69,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: colors.shadow,
                           offset: const Offset(0, 4),
                           blurRadius: 6,
                         ),
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: colors.shadow,
                           offset: const Offset(0, 10),
                           blurRadius: 15,
                         ),
@@ -89,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1F2937),
+                            color: colors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 26),
@@ -136,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Remember me',
                               style: GoogleFonts.inter(
                                 fontSize: 14,
-                                color: const Color(0xFF4B5563),
+                                color: colors.textSecondary,
                               ),
                             ),
                           ],
@@ -252,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Don\'t have an account? ',
                               style: GoogleFonts.inter(
                                 fontSize: 14,
-                                color: const Color(0xFF4B5563),
+                                color: colors.textSecondary,
                               ),
                             ),
                             GestureDetector(
@@ -269,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF2563EB),
+                                  color: colors.accent,
                                 ),
                               ),
                             ),

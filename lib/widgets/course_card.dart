@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_colors.dart';
 
 class CourseCard extends StatelessWidget {
   final String title;
@@ -17,17 +18,18 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: colors.shadow,
               offset: const Offset(0, 1),
               blurRadius: 2,
             ),
@@ -45,7 +47,7 @@ class CourseCard extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF1F2937),
+                      color: colors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -56,7 +58,7 @@ class CourseCard extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F6),
+                      color: colors.accentSurface,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Center(
@@ -65,7 +67,7 @@ class CourseCard extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF4F46E5),
+                          color: colors.accent,
                         ),
                       ),
                     ),
@@ -77,7 +79,7 @@ class CourseCard extends StatelessWidget {
               details,
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                color: const Color(0xFF6B7280),
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -87,13 +89,13 @@ class CourseCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(9999),
                 child: Container(
                   height: 4,
-                  color: const Color(0xFFE5E7EB),
+                  color: colors.border,
                   child: Row(
                     children: [
                       Container(
                         width:
                             MediaQuery.of(context).size.width * 0.7 * progress,
-                        color: const Color(0xFF4F46E5),
+                        color: colors.accent,
                       ),
                     ],
                   ),

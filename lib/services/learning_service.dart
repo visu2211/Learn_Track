@@ -300,6 +300,63 @@ class LearningService {
     }
   }
 
+  // Ask Gemini whether a topic name is ambiguous (e.g. "derivatives" could
+  // mean calculus or finance). Returns an empty list if unambiguous, or a
+  // list of 2-4 distinct, self-contained interpretations if it is.
+  Future<List<String>> checkAmbiguity(String topic) async {
+    final apiKey = await getGeminiApiKey();
+    if (apiKey == null) {
+      throw Exception(
+          'Gemini API key not set. Please set your API key in settings.');
+    }
+
+    try {
+      final model = GenerativeModel(
+        model: 'gemini-flash-latest',
+        apiKey: apiKey,
+      );
+
+      final prompt = '''
+        Someone wants to generate a study/learning path for the topic: "$topic".
+
+        Decide if this topic name is ambiguous - meaning it could reasonably
+        refer to two or more distinct, unrelated fields or subjects. For
+        example "derivatives" could mean derivatives in calculus (mathematics)
+        OR financial derivatives (options, futures, swaps) - two completely
+        different subjects that would need completely different learning
+        paths.
+
+        If the topic is NOT ambiguous (it clearly refers to one subject),
+        respond with exactly: []
+
+        If it IS ambiguous, respond with a JSON array of 2-4 short strings,
+        each a specific, self-contained phrasing of one interpretation, e.g.:
+        ["Derivatives in calculus (mathematics)", "Financial derivatives (options, futures, and swaps)"]
+
+        Respond with ONLY the JSON array and nothing else.
+      ''';
+
+      final response = await model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) return [];
+
+      final jsonStart = text.indexOf('[');
+      final jsonEnd = text.lastIndexOf(']') + 1;
+      if (jsonStart == -1 || jsonEnd == 0 || jsonStart >= jsonEnd) return [];
+
+      final parsed = jsonDecode(text.substring(jsonStart, jsonEnd));
+      if (parsed is List) {
+        return parsed.map((e) => e.toString()).toList();
+      }
+      return [];
+    } catch (e) {
+      // If the ambiguity check itself fails, don't block path generation -
+      // just proceed as if the topic were unambiguous.
+      print('Ambiguity check failed: $e');
+      return [];
+    }
+  }
+
   // Generate a learning path using Gemini API
   Future<Map<String, dynamic>> generatePathForTopic(String topic) async {
     // Check if API key is set
@@ -381,6 +438,7 @@ class LearningService {
 
       // Add progress tracking fields
       learningPath['progress'] = 0.0;
+      learningPath['createdAt'] = DateTime.now().toIso8601String();
 
       // Add completed fields to each module
       if (learningPath['modules'] != null) {
