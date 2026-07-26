@@ -1,16 +1,23 @@
 # app.py
 
+import os
 from flask import Flask, jsonify, request
 from config import Config
 from blueprints.auth import auth_bp
 from blueprints.users import users_bp
 from blueprints.learning import learning_bp
 from flask_cors import CORS
+from init_db import init_database
 
 app = Flask(__name__)
 # Enable CORS for all routes with proper settings for web
 CORS(app, resources={r"/*": {"origins": "*", "allow_headers": "*", "expose_headers": "*"}})
 app.config.from_object(Config)
+
+# Create tables (and the SQLite fallback DB) on startup if they don't exist
+# yet. Safe to call on every boot - this is how a fresh deploy (e.g. Render)
+# ends up with a working database without a separate manual setup step.
+init_database()
 
 # Create a root API blueprint
 from flask import Blueprint
@@ -50,5 +57,7 @@ def log_response_info(response):
     return response
 
 if __name__ == '__main__':
-    print("Starting server on http://0.0.0.0:8000")
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    port = int(os.environ.get('PORT', 8000))
+    debug = os.environ.get('FLASK_DEBUG', '1') == '1'
+    print(f"Starting server on http://0.0.0.0:{port} (debug={debug})")
+    app.run(debug=debug, host='0.0.0.0', port=port)

@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import '../config.dart';
 
 class LearningService {
   late final String baseUrl;
@@ -11,13 +10,7 @@ class LearningService {
   static const String _geminiApiKeyPref = 'gemini_api_key';
 
   LearningService() {
-    if (kIsWeb) {
-      baseUrl = 'http://localhost:8000/api';
-    } else if (Platform.isAndroid) {
-      baseUrl = 'http://10.0.2.2:8000/api';
-    } else {
-      baseUrl = 'http://localhost:8000/api';
-    }
+    baseUrl = apiBaseUrl;
   }
 
   // Get auth token from shared preferences

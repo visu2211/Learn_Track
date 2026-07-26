@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
 
 class User {
   final String uid;
@@ -16,16 +16,7 @@ class AuthService {
   late final String baseUrl;
 
   AuthService() {
-    if (kIsWeb) {
-      baseUrl = 'http://localhost:8000/api';
-    } else if (Platform.isAndroid) {
-      baseUrl = 'http://10.0.2.2:8000/api';
-    } else if (Platform.isIOS) {
-      baseUrl = 'http://localhost:8000/api';
-    } else {
-      baseUrl = 'http://localhost:8000/api';
-    }
-
+    baseUrl = apiBaseUrl;
     checkServerConnectivity();
   }
 
