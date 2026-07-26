@@ -49,6 +49,7 @@ backend/backend/venv/
 backend/backend/__pycache__/
 backend/backend/blueprints/__pycache__/
 backend/backend/*.db
+/.venv/
 
 # Firebase Hosting local cache
 .firebase/
