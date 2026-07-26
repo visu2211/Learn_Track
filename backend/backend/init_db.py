@@ -16,6 +16,7 @@ def init_database():
                     email TEXT NOT NULL UNIQUE,
                     password TEXT NOT NULL,
                     age INTEGER,
+                    token TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """
@@ -27,10 +28,18 @@ def init_database():
                     email VARCHAR(255) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL,
                     age INT,
+                    token VARCHAR(255),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """
             cursor.execute(sql)
+
+            # Migrate existing databases created before the token column existed
+            try:
+                cursor.execute("ALTER TABLE users ADD COLUMN token TEXT")
+                connection.commit()
+            except Exception:
+                pass  # Column already exists
 
             if is_sqlite:
                 user_data_sql = """

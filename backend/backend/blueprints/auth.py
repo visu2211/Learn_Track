@@ -50,7 +50,15 @@ def signup():
     finally:
         connection.close()
 
-    token = hashlib.sha256(f"{email}{password_hash}{name}".encode()).hexdigest()
+    token = hashlib.sha256(f"{email}{password_hash}{name}{user_id}".encode()).hexdigest()
+
+    connection = get_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE users SET token = %s WHERE id = %s", (token, user_id))
+        connection.commit()
+    finally:
+        connection.close()
 
     return jsonify({
         'message': 'User created successfully',
@@ -84,7 +92,15 @@ def login():
     if password_hash != user['password']:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    token = hashlib.sha256(f"{email}{password_hash}{user['name']}".encode()).hexdigest()
+    token = hashlib.sha256(f"{email}{password_hash}{user['name']}{user['id']}".encode()).hexdigest()
+
+    connection = get_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE users SET token = %s WHERE id = %s", (token, user['id']))
+        connection.commit()
+    finally:
+        connection.close()
 
     return jsonify({
         'message': 'Signed in successfully',
@@ -105,13 +121,13 @@ def validate_token():
         return jsonify({'message': 'Invalid token'}), 401
     
     token = auth_header.split(' ')[1]
-    
+
     connection = get_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM users LIMIT 1")
+            cursor.execute("SELECT * FROM users WHERE token = %s", (token,))
             user = cursor.fetchone()
-            
+
             if user:
                 return jsonify({
                     'uid': str(user['id']),
@@ -119,8 +135,6 @@ def validate_token():
                     'name': user['name']
                 }), 200
             else:
-                return jsonify({'message': 'User not found'}), 404
+                return jsonify({'message': 'Invalid token'}), 401
     finally:
         connection.close()
-        
-    return jsonify({'message': 'Invalid token'}), 401

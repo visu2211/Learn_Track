@@ -43,10 +43,10 @@ def log_request_info():
 @app.after_request
 def log_response_info(response):
     print(f"Response: {response.status_code} {response.get_data()}")
-    # Add CORS headers for web requests
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    # CORS headers are handled by flask_cors (see CORS(app, ...) above).
+    # Do not add them here too - duplicate/conflicting header values cause
+    # browsers to reject custom request headers like X-User-ID, silently
+    # breaking every /courses, /paths, and /streak request from the app.
     return response
 
 if __name__ == '__main__':
