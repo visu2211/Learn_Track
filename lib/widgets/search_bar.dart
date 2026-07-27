@@ -96,15 +96,43 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   }
 
   void _handleError(Object e) {
+    final message = e.toString();
+
     // Check if error is about missing API key
-    if (e.toString().contains('API key not set')) {
+    if (message.contains('API key not set')) {
       setState(() {
         _apiKeyError = 'Gemini API key not set. Please set it in settings.';
       });
       _showApiKeyDialog();
+      return;
+    }
+
+    // Recognize the common Gemini failure modes and show something
+    // actionable instead of dumping the raw error JSON in the UI - that
+    // JSON is still useful for debugging, so it's printed to the console,
+    // just not shoved in front of the user as-is.
+    print('Learning path generation failed: $message');
+
+    if (message.contains('429') || message.contains('RESOURCE_EXHAUSTED')) {
+      setState(() {
+        _apiKeyError =
+            "You've hit Gemini's free-tier rate limit (a few requests per "
+            'minute). Wait about a minute and try again.';
+      });
+    } else if (message.contains('401') ||
+        message.contains('403') ||
+        message.contains('UNAUTHENTICATED') ||
+        message.contains('PERMISSION_DENIED') ||
+        message.contains('API_KEY')) {
+      setState(() {
+        _apiKeyError =
+            'Your Gemini API key was rejected - it may be invalid, expired, '
+            'or blocked. Check Settings to replace it, or verify it in '
+            'Google Cloud Console.';
+      });
     } else {
       setState(() {
-        _apiKeyError = 'Could not generate a learning path: ${e.toString()}';
+        _apiKeyError = 'Could not generate a learning path. Please try again.';
       });
     }
   }
