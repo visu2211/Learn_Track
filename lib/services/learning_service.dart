@@ -487,7 +487,7 @@ class LearningService {
         Use Google Search to find these resources - do not rely on memory for URLs, look them up.
         For every resource:
         - It MUST be completely free to access, with no paywall, subscription, or "audit vs.
-          paid certificate" split. Prefer freeCodeCamp, Khan Academy, MDN, OpenStax, Wikipedia,
+          paid certificate" split. Prefer freeCodeCamp, Khan Academy, MDN, OpenStax,
           official documentation sites, and YouTube. AVOID Coursera and Udemy entirely - even
           their "free" listings usually gate the actual content behind a paywall or a
           certificate paywall.
