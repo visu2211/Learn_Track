@@ -46,6 +46,16 @@ class LearningService {
     return _geminiApiKey;
   }
 
+  // Removes the stored Gemini API key so the next path-generation attempt
+  // prompts for a new one. Used by the "Reset API key" action in Settings -
+  // e.g. after rotating a key that was accidentally shared, or to switch to
+  // a different Google Cloud project's key.
+  Future<void> clearGeminiApiKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_geminiApiKeyPref);
+    _geminiApiKey = null;
+  }
+
   // Get current courses for the user
   Future<List<Map<String, dynamic>>> getCurrentCourses() async {
     try {

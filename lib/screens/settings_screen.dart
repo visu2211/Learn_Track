@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/learning_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/learning_service.dart';
 import '../theme/app_colors.dart';
 import 'learning_paths_screen.dart';
 
@@ -35,6 +36,10 @@ class SettingsScreen extends StatelessWidget {
           _SectionHeader(title: 'Appearance'),
           const SizedBox(height: 12),
           const _ThemeModeSelector(),
+          const SizedBox(height: 32),
+          _SectionHeader(title: 'Gemini API Key'),
+          const SizedBox(height: 12),
+          const _ApiKeySection(),
           const SizedBox(height: 32),
           _SectionHeader(title: 'Learning Path History'),
           const SizedBox(height: 12),
@@ -149,6 +154,231 @@ class _ThemeModeTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Shows whether a Gemini API key is currently stored, and lets the user
+// replace or remove it - e.g. after rotating a key that was accidentally
+// shared, or to switch to a different Google Cloud project's key. Removing
+// it just clears local storage; the next learning-path search will prompt
+// for a new key the same way it does the very first time.
+class _ApiKeySection extends StatefulWidget {
+  const _ApiKeySection();
+
+  @override
+  State<_ApiKeySection> createState() => _ApiKeySectionState();
+}
+
+class _ApiKeySectionState extends State<_ApiKeySection> {
+  final LearningService _learningService = LearningService();
+  String? _maskedKey;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadKeyStatus();
+  }
+
+  Future<void> _loadKeyStatus() async {
+    final key = await _learningService.getGeminiApiKey();
+    if (!mounted) return;
+    setState(() {
+      _maskedKey = key == null ? null : _mask(key);
+      _loading = false;
+    });
+  }
+
+  String _mask(String key) {
+    if (key.length <= 4) return '••••';
+    return '••••••••${key.substring(key.length - 4)}';
+  }
+
+  Future<void> _showKeyDialog() async {
+    final colors = context.colors;
+    final controller = TextEditingController();
+
+    final newKey = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          title: Text(
+            _maskedKey == null ? 'Set Gemini API Key' : 'Replace Gemini API Key',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
+          ),
+          content: TextField(
+            controller: controller,
+            obscureText: true,
+            style: TextStyle(color: colors.textPrimary),
+            decoration: InputDecoration(
+              hintText: 'Enter your Gemini API key',
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 14,
+                color: colors.textTertiary,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: colors.border),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text('Cancel',
+                  style: GoogleFonts.poppins(color: colors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(controller.text.trim()),
+              style: ElevatedButton.styleFrom(backgroundColor: colors.accent),
+              child: Text('Save',
+                  style: GoogleFonts.poppins(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newKey != null && newKey.isNotEmpty) {
+      await _learningService.setGeminiApiKey(newKey);
+      await _loadKeyStatus();
+    }
+  }
+
+  Future<void> _confirmReset() async {
+    final colors = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          title: Text(
+            'Reset API key?',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
+          ),
+          content: Text(
+            'Your saved Gemini API key will be removed from this device. '
+            "You'll be asked for a new one the next time you generate a "
+            'learning path.',
+            style: GoogleFonts.poppins(fontSize: 14, color: colors.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text('Cancel',
+                  style: GoogleFonts.poppins(color: colors.textSecondary)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(
+                'Reset',
+                style: GoogleFonts.poppins(
+                  color: colors.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _learningService.clearGeminiApiKey();
+      await _loadKeyStatus();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow,
+            offset: const Offset(0, 1),
+            blurRadius: 2,
+          ),
+        ],
+      ),
+      child: _loading
+          ? const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      _maskedKey == null
+                          ? Icons.key_off_outlined
+                          : Icons.vpn_key_outlined,
+                      size: 18,
+                      color: colors.textSecondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _maskedKey ?? 'No API key set',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _showKeyDialog,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: colors.border),
+                          foregroundColor: colors.accent,
+                        ),
+                        child: Text(_maskedKey == null ? 'Set Key' : 'Replace'),
+                      ),
+                    ),
+                    if (_maskedKey != null) ...[
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _confirmReset,
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: colors.error),
+                            foregroundColor: colors.error,
+                          ),
+                          child: const Text('Reset'),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
     );
   }
 }
