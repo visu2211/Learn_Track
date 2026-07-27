@@ -362,6 +362,78 @@ class LearningService {
     }
   }
 
+  // Calls Gemini's generateContent REST endpoint directly (bypassing the
+  // GenerativeModel class from package:google_generative_ai) with the
+  // "google_search" tool enabled, so the model actually searches the live
+  // web before answering instead of pattern-matching plausible-looking URLs
+  // from its training data. This is what fixes hallucinated/404 resource
+  // links - the installed version of the google_generative_ai package
+  // doesn't expose search grounding in its typed Tool API, but the REST API
+  // itself accepts it as a plain JSON field, so we call it directly here.
+  //
+  // Google Search grounding has its own quota separate from plain text
+  // generation, and in practice requires billing to be enabled on the
+  // Cloud project behind the API key - a key that works fine for plain
+  // generation can still get a 429 specifically on the grounded call. If
+  // that happens, we retry once without the search tool rather than
+  // failing the whole feature - the prompt's free/specific-resource rules
+  // still help even without grounding, just without the "actually verified
+  // via search" guarantee.
+  Future<String?> _generateWithSearchGrounding(
+      String apiKey, String prompt) async {
+    try {
+      return await _callGemini(apiKey, prompt, useSearchGrounding: true);
+    } catch (e) {
+      print('Search-grounded generation failed, retrying without it: $e');
+      return _callGemini(apiKey, prompt, useSearchGrounding: false);
+    }
+  }
+
+  Future<String?> _callGemini(String apiKey, String prompt,
+      {required bool useSearchGrounding}) async {
+    // 'gemini-flash-latest' is Google's alias for their current default
+    // model rather than a pinned version - this was originally pinned to
+    // 'gemini-1.5-pro', which Google has since fully removed from the API
+    // (confirmed via a direct API call that returned a 404).
+    final uri = Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent');
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'x-goog-api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'contents': [
+          {
+            'parts': [
+              {'text': prompt}
+            ]
+          }
+        ],
+        if (useSearchGrounding)
+          'tools': [
+            {'google_search': {}}
+          ],
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Gemini API error (${response.statusCode}): ${response.body}');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final candidates = data['candidates'] as List<dynamic>?;
+    if (candidates == null || candidates.isEmpty) return null;
+
+    final parts = candidates[0]['content']?['parts'] as List<dynamic>?;
+    if (parts == null || parts.isEmpty) return null;
+
+    return parts.map((p) => p['text'] ?? '').join();
+  }
+
   // Generate a learning path using Gemini API
   Future<Map<String, dynamic>> generatePathForTopic(String topic) async {
     // Check if API key is set
@@ -372,19 +444,6 @@ class LearningService {
     }
 
     try {
-      // Use Gemini API to generate learning path.
-      // 'gemini-flash-latest' is Google's alias for their current default
-      // model rather than a pinned version - this was originally pinned to
-      // 'gemini-1.5-pro', which Google has since fully removed from the API
-      // (confirmed via a direct API call that returned a 404). Using the
-      // "latest" alias trades a small amount of behavior-shifting-over-time
-      // risk for not silently breaking again the next time a model is
-      // deprecated.
-      final model = GenerativeModel(
-        model: 'gemini-flash-latest',
-        apiKey: apiKey,
-      );
-
       final prompt = '''
         Create a structured learning path for someone who wants to learn about "$topic".
         Generate a JSON object with this structure:
@@ -399,7 +458,7 @@ class LearningService {
               "estimatedHours": estimated hours for this module,
               "lessons": [
                 {
-                  "title": "Lesson title", 
+                  "title": "Lesson title",
                   "description": "Brief lesson description",
                   "resources": [
                     {"type": "article|video|book|course|tool", "title": "Resource title", "url": "Actual URL to the resource"}
@@ -409,31 +468,32 @@ class LearningService {
             }
           ]
         }
-        
+
         Make sure to include 3-5 modules with 3-6 lessons each, depending on the complexity of the topic.
         Include a mix of theoretical and practical lessons.
-        
+
         IMPORTANT: Each LESSON should have its own set of 2-3 resources directly related to that specific lesson's content.
-        
-        For resources, include REAL, SPECIFIC URLs to actual:
-        - articles (from websites like medium.com, dev.to, css-tricks.com, smashingmagazine.com)
-        - videos (from YouTube with real channel names)
-        - courses (from platforms like Coursera, Udemy, edX, Khan Academy) 
-        - books (with links to Amazon or Goodreads)
-        - tools (with links to their official websites)
-        
+
+        Use Google Search to find these resources - do not rely on memory for URLs, look them up.
+        For every resource:
+        - It MUST be completely free to access, with no paywall, subscription, or "audit vs.
+          paid certificate" split. Prefer freeCodeCamp, Khan Academy, MDN, OpenStax, Wikipedia,
+          official documentation sites, and YouTube. AVOID Coursera and Udemy entirely - even
+          their "free" listings usually gate the actual content behind a paywall or a
+          certificate paywall.
+        - It MUST link to the specific article/video/page about this lesson's exact topic, not
+          a homepage, a category/tag listing page, a search results page, or a general resource
+          hub.
+        - Search for it and confirm it exists before including it. If you cannot find a real,
+          specific, free resource for a lesson, include fewer resources for that lesson (even
+          zero) rather than guessing or inventing one.
+
         DO NOT use placeholder URLs like example.com or fictional URLs.
-        Every URL must be a real, functioning website that actually exists.
-        Double-check that your URLs point to real content that's relevant to "$topic".
-        
+
         Make sure the learning path is comprehensive but focused specifically on "$topic".
       ''';
 
-      final content = [Content.text(prompt)];
-      final response = await model.generateContent(content);
-
-      // Parse the response
-      final text = response.text;
+      final text = await _generateWithSearchGrounding(apiKey, prompt);
       if (text == null) {
         throw Exception('Failed to generate learning path: Empty response');
       }
